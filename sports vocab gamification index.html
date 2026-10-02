@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sports Discipline Vocabulary Arena</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #22c55e;
+      --error: #ef4444;
+      --accent: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #1e293b, #0b0f19);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 10;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .badge {
+      background: #0284c720;
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid #38bdf840;
+    }
+    .hud {
+      display: flex;
+      gap: 15px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .hud-item { display: flex; align-items: center; gap: 5px; }
+    .streak-fire { color: var(--accent); }
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #334155;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      transition: width 0.3s ease;
+    }
+    .question-box {
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 25px;
+      min-height: 70px;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .option-btn {
+      background: #0f172a80;
+      border: 1.5px solid var(--card-border);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 1rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+    .option-btn:hover:not(:disabled) {
+      background: #334155;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .option-btn.correct {
+      background: #14532d !important;
+      border-color: var(--success) !important;
+      color: #86efac;
+    }
+    .option-btn.wrong {
+      background: #7f1d1d !important;
+      border-color: var(--error) !important;
+      color: #fca5a5;
+    }
+    .key-hint {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      background: #334155;
+      border-radius: 6px;
+      color: var(--text-muted);
+    }
+    .feedback-pane {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .feedback-text {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .next-btn {
+      background: var(--primary);
+      color: #0b0f19;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      transition: background 0.2s;
+    }
+    .next-btn:hover { background: var(--primary-hover); }
+    /* Results Screen */
+    .results-screen { display: none; text-align: center; }
+    .score-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0284c740, transparent);
+      border: 4px solid var(--primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .score-number { font-size: 2.8rem; font-weight: 800; color: #fff; }
+    .score-total { font-size: 0.9rem; color: var(--text-muted); }
+    .rank-title { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+    .restart-btn {
+      background: var(--success);
+      color: #0b0f19;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      margin-top: 25px;
+      transition: transform 0.2s;
+    }
+    .restart-btn:hover { transform: scale(1.03); }
+    canvas#confetti {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="container">
+    <!-- Active Quiz View -->
+    <div id="quiz-view">
+      <header>
+        <span class="badge">Sports Discipline • Year 2</span>
+        <div class="hud">
+          <div class="hud-item"><span class="streak-fire">🔥</span> Streak: <span id="streak-count">0</span></div>
+          <div class="hud-item">🏆 Score: <span id="score-count">0</span></div>
+        </div>
+      </header>
+
+      <div class="progress-bar-bg">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="question-box" id="question-text">Loading question...</div>
+      <div class="options-grid" id="options-container"></div>
+
+      <div class="feedback-pane">
+        <div class="feedback-text" id="feedback-text"></div>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question ➜</button>
+      </div>
+    </div>
+
+    <!-- Final Results View -->
+    <div id="results-view" class="results-screen">
+      <span class="badge">Challenge Completed</span>
+      <div class="score-circle">
+        <span class="score-number" id="final-score">0</span>
+        <span class="score-total">out of 14</span>
+      </div>
+      <div class="rank-title" id="rank-title">Varsity MVP</div>
+      <p id="rank-desc" style="color: var(--text-muted); max-width: 480px; margin: 0 auto; line-height: 1.5;"></p>
+      <button class="restart-btn" onclick="restartQuiz()">🔄 Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    // Audio Synthesizer (Zero external dependencies)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, type = 'sine', duration = 0.15) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    const sounds = {
+      correct: () => { playBeep(523.25, 'triangle', 0.1); setTimeout(() => playBeep(659.25, 'triangle', 0.15), 100); },
+      wrong: () => { playBeep(180, 'sawtooth', 0.25); },
+      victory: () => {
+        [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playBeep(f, 'sine', 0.2), i * 120));
+      }
+    };
+
+    // 14 Multiple Choice Questions extracted from Practice Paper
+    const rawQuestions = [
+      { q: "Messi tries to _____ the ball to the penalty area – and he scores!", opts: ["rebound", "dribble", "sprain", "stretches", "grab"], a: "dribble" },
+      { q: "_____ is not only a complete martial art from China, it is also a full contact sport.", opts: ["diving", "archery", "wrestling", "wushu", "shooting"], a: "wushu" },
+      { q: "You will definitely have _____ feet tomorrow – you jogged too hard today!", opts: ["tears", "intensity", "sore", "flips", "ankle"], a: "sore" },
+      { q: "Liverpool FC is one of the _____ teams in modern football with six UEFA Champions League titles and an EPL title.", opts: ["top-ranked", "award", "gold", "honor", "contest"], a: "top-ranked" },
+      { q: "Not only requiring physical strength and good stamina, _____ also requires skills like map reading and decision making.", opts: ["skiing", "curling", "bob sleigh", "equestrian", "orienteering"], a: "orienteering" },
+      { q: "One of the goals of the Paralympic Games is to encourage people with _____ to participate more actively in sports.", opts: ["fundamentals", "agility", "disabilities", "ability", "sportsmanship"], a: "disabilities" },
+      { q: "Too much repetitive training may cause repetitive stress, eventually leading to _____.", opts: ["pelvis", "overuse injury", "dislocate", "cartilage", "breaks"], a: "overuse injury" },
+      { q: "Arsenal’s Shkodran Mustafi will miss the new EPL season as he is still in his early stage of _____ after a serious injury.", opts: ["monitoring", "floor routine", "benchmarking", "recover", "rehabilitation"], a: "rehabilitation" },
+      { q: "Australia, Japan, Qatar and the USA competed fiercely to be the _____ of the 2022 World Cup, and Qatar won the bid.", opts: ["host country", "participants", "signature events", "subcommittees", "development initiatives"], a: "host country" },
+      { q: "An inappropriate twisting or pivoting action performed by athletes may lead to _____ injuries.", opts: ["tendon", "pelvis", "elbows", "cartilage", "sharp pain"], a: "cartilage" },
+      { q: "A comprehensive _____ is needed for the HKSAR Government to better develop sports and support athletes.", opts: ["biopsychosocial model", "sustainability", "sponsorship", "strategic plan", "sport nutrition"], a: "strategic plan" },
+      { q: "A _____ study is definitely needed before making a decision to establish a new sports facility in the city.", opts: ["sport medicine", "cross-training", "lifesaving", "selection criteria", "feasibility"], a: "feasibility" },
+      { q: "_____ is a much-needed ability for basketball players, especially if they play a fast run-and-gun game.", opts: ["workouts", "agility", "spirit", "glory", "diving"], a: "agility" },
+      { q: "A wild _____ in baseball means the ball thrown cannot be caught or controlled by the catcher using ordinary effort.", opts: ["pitch", "javelin", "dribble", "hockey", "award"], a: "pitch" }
+    ];
+
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let answered = false;
+
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+    function initGame() {
+      questions = shuffle(rawQuestions).map(q => ({ ...q, shuffledOpts: shuffle(q.opts) }));
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      document.getElementById("quiz-view").style.display = "block";
+      document.getElementById("results-view").style.display = "none";
+      updateHUD();
+      renderQuestion();
+    }
+
+    function updateHUD() {
+      document.getElementById("score-count").innerText = score;
+      document.getElementById("streak-count").innerText = streak;
+      const progress = (currentIndex / questions.length) * 100;
+      document.getElementById("progress-bar").style.width = `${progress}%`;
+    }
+
+    function renderQuestion() {
+      answered = false;
+      const q = questions[currentIndex];
+      document.getElementById("question-text").innerText = `Q${currentIndex + 1}. ${q.q}`;
+      document.getElementById("feedback-text").innerText = "";
+      document.getElementById("next-btn").style.display = "none";
+
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
+      const letters = ["A", "B", "C", "D", "E"];
+
+      q.shuffledOpts.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerHTML = `<span><strong>${letters[idx]}.</strong> ${opt}</span><span class="key-hint">${idx + 1}</span>`;
+        btn.onclick = () => selectAnswer(opt, btn);
+        container.appendChild(btn);
+      });
+      updateHUD();
+    }
+
+    function selectAnswer(selected, selectedBtn) {
+      if (answered) return;
+      answered = true;
+      const q = questions[currentIndex];
+      const buttons = document.querySelectorAll(".option-btn");
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (selected.toLowerCase() === q.a.toLowerCase()) {
+        selectedBtn.classList.add("correct");
+        sounds.correct();
+        score++;
+        streak++;
+        document.getElementById("feedback-text").innerHTML = `<span style="color: var(--success)">✓ Correct! Great eye!</span>`;
+      } else {
+        selectedBtn.classList.add("wrong");
+        sounds.wrong();
+        streak = 0;
+        document.getElementById("feedback-text").innerHTML = `<span style="color: var(--error)">✗ Correct answer: <strong>${q.a}</strong></span>`;
+        buttons.forEach(btn => {
+          if (btn.innerText.includes(q.a)) btn.classList.add("correct");
+        });
+      }
+
+      updateHUD();
+      document.getElementById("next-btn").style.display = "inline-block";
+      document.getElementById("next-btn").focus();
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById("quiz-view").style.display = "none";
+      document.getElementById("results-view").style.display = "block";
+      document.getElementById("final-score").innerText = score;
+      document.getElementById("progress-bar").style.width = `100%`;
+
+      const pct = (score / questions.length) * 100;
+      let title = "Olympic Gold Champion 🥇";
+      let desc = "Outstanding mastery! You have a complete command of professional sports terminology.";
+
+      if (pct < 60) {
+        title = "Academy Recruit 🏃‍♂️";
+        desc = "Good effort! Review sports injuries and governance terms to sharpen your vocabulary.";
+      } else if (pct < 85) {
+        title = "Varsity Athlete 🥈";
+        desc = "Great job! A solid grasp of sports terminology with just a couple of terms to polish.";
+      }
+
+      document.getElementById("rank-title").innerText = title;
+      document.getElementById("rank-desc").innerText = desc;
+
+      if (pct >= 70) {
+        sounds.victory();
+        triggerConfetti();
+      }
+    }
+
+    function restartQuiz() { initGame(); }
+
+    // Keyboard Shortcuts (1-5 or A-E to select, Enter for Next)
+    window.addEventListener("keydown", (e) => {
+      if (document.getElementById("quiz-view").style.display === "none") return;
+      const key = e.key.toUpperCase();
+      const keyMap = { "1": 0, "A": 0, "2": 1, "B": 1, "3": 2, "C": 2, "4": 3, "D": 3, "5": 4, "E": 4 };
+      if (!answered && key in keyMap) {
+        const btns = document.querySelectorAll(".option-btn");
+        if (btns[keyMap[key]]) btns[keyMap[key]].click();
+      } else if (answered && (e.key === "Enter" || e.key === " ")) {
+        nextQuestion();
+      }
+    });
+
+    // Confetti Engine
+    function triggerConfetti() {
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const particles = Array.from({ length: 90 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        color: ["#38bdf8", "#22c55e", "#f59e0b", "#ec4899"][Math.floor(Math.random() * 4)],
+        size: Math.random() * 8 + 4,
+        speed: Math.random() * 4 + 3,
+        angle: Math.random() * 6.28
+      }));
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.y += p.speed;
+          p.x += Math.sin(p.angle) * 2;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+        frame++;
+        if (frame < 180) requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
